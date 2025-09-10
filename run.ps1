@@ -1,0 +1,1 @@
+docker run -it --rm -v $env:APPDATA\gcloud:/root/.config/gcloud geofflee/avandra
