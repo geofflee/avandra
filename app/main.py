@@ -1,6 +1,7 @@
 """Main entry point for the Avandra Discord bot."""
 
 import argparse
+import asyncio
 from backends.anthropic import AnthropicClient
 from backends.discord import DiscordClient
 import credentials
@@ -11,23 +12,25 @@ def make_handle_prompt(
 		anthropic_client: AnthropicClient) -> DiscordClient.HandlePromptFn:
 	"""Returns a callback that handles a user prompt."""
 	return lambda character_name, user_prompt, handle_output: dispatch_prompt.handle_prompt(
-		anthropic_client,
-		character_name,
-		user_prompt,
-		dispatch_tool.handle_tool,
-		handle_output,
+			anthropic_client,
+			character_name,
+			user_prompt,
+			dispatch_tool.handle_tool,
+			handle_output,
 	)
 
-def run_interactive(anthropic_client: AnthropicClient, character_name: str):
+async def run_interactive(anthropic_client: AnthropicClient, character_name: str):
 	"""Run the job in interactive mode."""
 	handle_prompt = make_handle_prompt(anthropic_client)
-	handle_output = lambda output: print(output + "\n")
+	async def handle_output(output: str):
+		print(output + "\n")
+
 	while True:
 		try:
-			user_prompt = input("> ")
+			user_prompt = await asyncio.to_thread(input, "> ")
 			if user_prompt == "exit":
 				break
-			handle_prompt(character_name, user_prompt, handle_output)
+			await handle_prompt(character_name, user_prompt, handle_output)
 		except EOFError:
 			break
 		except KeyboardInterrupt:
@@ -47,6 +50,6 @@ if __name__ == "__main__":
 	anthropic_client = AnthropicClient(credentials.anthropic_key())
 
 	if args.interactive:
-		run_interactive(anthropic_client, args.name)
+		asyncio.run(run_interactive(anthropic_client, args.name))
 	else:
 		run_discord(anthropic_client)
