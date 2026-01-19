@@ -1,7 +1,9 @@
 anthropic
+black
 discord.py>=2.5.0,<3.0.0
 google-cloud-secret-manager
 google_crc32c
 langchain-anthropic
 psycopg[binary]
 pydantic>=2.7.0,<3.0.0
+pylint
