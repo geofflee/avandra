@@ -2,6 +2,18 @@
 
 ## Avandra
 
+### Google Cloud CLI setup
+
+```
+winget install -e --id Google.CloudSDK
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+gcloud init
+
+gcloud auth application-default login
+```
+
 ### Create network
 
 ```
