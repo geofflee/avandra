@@ -7,3 +7,5 @@ langchain-anthropic
 psycopg[binary]
 pydantic>=2.7.0,<3.0.0
 pylint
+pytest
+pytest-asyncio
