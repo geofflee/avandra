@@ -1,7 +1,6 @@
-from backends.anthropic import AnthropicClient
-from pydantic_core import to_json
-import tools
 from typing import Awaitable, Callable
+from backends.anthropic import AnthropicClient
+import tools
 
 
 async def _get_emojis(send_reply: Callable[[str], Awaitable[None]]) -> None:

@@ -1,7 +1,7 @@
+import random
 from typing import Annotated, Awaitable, Callable
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_core import to_json
-import random
 
 
 class DiceRollInput(BaseModel):
@@ -130,76 +130,31 @@ def get_emoji(sides: int, value: int) -> str:
 
 
 async def roll_dice(
-    input: DiceRollInput, send_reply: Callable[[str], Awaitable[None]]
+    tool_input: DiceRollInput, send_reply: Callable[[str], Awaitable[None]]
 ) -> str:
     """Rolls dice.
 
     Allows the caller to specify the number of sides, the number of times to roll.
     """
 
-    # ,
-    # an optional modifier, and the mode of the roll (normal, advantage, or
-    # disadvantage).
-    # """
     def roll(sides: int, times: int) -> list[int]:
         return [random.randint(1, sides) for _ in range(times)]
 
     def to_emojis(rolls: list[int]) -> str:
-        return " ".join(f"{get_emoji(input.sides, roll)}" for roll in rolls)
+        return " ".join(
+            f"{get_emoji(tool_input.sides, roll_val)}" for roll_val in rolls
+        )
 
-    if input.sides < 1:
+    if tool_input.sides < 1:
         return "Number of sides must be at least 1."
 
-    # if input.times == 1 and input.mode == "normal" and input.modifier == 0:
-    # 	breakdown = get_emoji(input.sides, roll(input.sides, 1)[0])
-    # 	return f"{input.stringify()} -> {breakdown}"
-
-    rolls = roll(input.sides, input.times)
-    await send_reply(f"{input.stringify()} -> {to_emojis(rolls)}")
+    rolls = roll(tool_input.sides, tool_input.times)
+    await send_reply(f"{tool_input.stringify()} -> {to_emojis(rolls)}")
     return to_json(
         {
             "rolls": rolls,
         }
     ).decode()
-
-    if input.mode == "normal":
-        rolls = roll(input.sides, input.times)
-        breakdown = to_emojis(rolls)
-        total = sum(rolls) + input.modifier
-        tool_result = to_json(
-            {
-                "rolls": rolls,
-                "modifier": input.modifier,
-                "total": total,
-            }
-        ).decode()
-    else:  # advantage or disadvantage
-        roll_1 = roll(input.sides, input.times)
-        roll_2 = roll(input.sides, input.times)
-        breakdown_1 = to_emojis(roll_1)
-        breakdown_2 = to_emojis(roll_2)
-        breakdown = f"({breakdown_1} | {breakdown_2})"
-        if input.mode == "advantage":
-            total = max(sum(roll_1), sum(roll_2))
-        else:
-            total = min(sum(roll_1), sum(roll_2))
-        total += input.modifier
-        tool_result = to_json(
-            {
-                "rolls_1": roll_1,
-                "rolls_2": roll_2,
-                "modifier": input.modifier,
-                "total": total,
-            }
-        ).decode()
-
-    if input.modifier > 0:
-        breakdown += f" + {input.modifier}"
-    elif input.modifier < 0:
-        breakdown += f" - {abs(input.modifier)}"
-
-    await send_reply(f"{input.stringify()} -> {breakdown} -> {total}")
-    return tool_result
 
 
 def tool_json_schema() -> dict:
@@ -211,11 +166,13 @@ def tool_json_schema() -> dict:
     }
 
 
-async def run(input: dict | str, send_reply: Callable[[str], Awaitable[None]]) -> str:
+async def run(
+    tool_input: dict | str, send_reply: Callable[[str], Awaitable[None]]
+) -> str:
     """Runs the roll_dice tool on a json input."""
-    if isinstance(input, str):
-        inputs = DiceRollInput.model_validate_json(input)
+    if isinstance(tool_input, str):
+        inputs = DiceRollInput.model_validate_json(tool_input)
     else:
-        inputs = DiceRollInput.model_validate(input)
+        inputs = DiceRollInput.model_validate(tool_input)
     output = await roll_dice(inputs, send_reply)
     return output

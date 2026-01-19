@@ -47,7 +47,7 @@ def _get_secret(project_id: str, secret_id: str, version_id: str = "latest") -> 
     crc32c = google_crc32c.Checksum()
     crc32c.update(response.payload.data)
     if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
-        raise Exception("Data corruption detected.")
+        raise RuntimeError("Data corruption detected.")
 
     # Return the secret payload
     return response.payload.data.decode("UTF-8")

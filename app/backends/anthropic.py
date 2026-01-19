@@ -3,7 +3,6 @@ import time
 from typing import Awaitable, Callable
 import anthropic
 from pydantic_core import from_json
-from pydantic_core import to_json
 
 
 class AnthropicClient:
@@ -80,8 +79,10 @@ class AnthropicClient:
         Args:
                 system_prompt: The system prompt.
                 tools: The tools to use.
-                handle_tool: A function to handle tool calls, where the first argument is
-                        the tool name and the second argument is a dict or json string.
+                handle_tool: A function to handle tool calls, where the first
+                        argument is the tool name and the second argument is a
+                        dict or json string.
+                send_reply: A function to send a reply to the user.
                 user_prompt: The user prompt.
 
         Returns:
@@ -113,7 +114,7 @@ class AnthropicClient:
             call_start_time = time.time()
             try:
                 message = await self.call_api(system_prompt, tools, messages)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 replies.append(f"Error: {e}")
                 # await send_reply(f"Error: {e}")
                 break
@@ -147,7 +148,7 @@ class AnthropicClient:
                                     "content": tool_result,
                                 }
                             )
-                        except Exception as e:
+                        except Exception as e:  # pylint: disable=broad-exception-caught
                             replies.append(f"Error: {e}")
                             # await send_reply(f"Error: {e}")
                     case _:
@@ -175,8 +176,8 @@ class AnthropicClient:
 class MockAnthropicClient(AnthropicClient):
     """A mock Anthropic client for testing purposes."""
 
-    def call_api(
-        self, system_prompt: str, tools: list[dict], user_prompt: str
+    async def call_api(
+        self, system_prompt: list[dict], tools: list[dict], messages: list[dict]
     ) -> anthropic.types.Message:
         """Mock call to the Anthropic API for testing purposes."""
         return self.mock_call_api()

@@ -1,6 +1,6 @@
 from __future__ import annotations
-import discord
 from typing import Awaitable, Callable
+import discord
 
 
 def get_character_name(user_name: str) -> str:

@@ -13,13 +13,17 @@ def make_handle_prompt(
     anthropic_client: AnthropicClient,
 ) -> DiscordClient.HandlePromptFn:
     """Returns a callback that handles a user prompt."""
-    return lambda character_name, user_prompt, handle_output: dispatch_prompt.handle_prompt(
-        anthropic_client,
-        character_name,
-        user_prompt,
-        dispatch_tool.handle_tool,
-        handle_output,
-    )
+
+    async def handle_prompt_cb(character_name, user_prompt, handle_output):
+        return await dispatch_prompt.handle_prompt(
+            anthropic_client,
+            character_name,
+            user_prompt,
+            dispatch_tool.handle_tool,
+            handle_output,
+        )
+
+    return handle_prompt_cb
 
 
 async def run_interactive(anthropic_client: AnthropicClient, character_name: str):
@@ -47,7 +51,7 @@ def run_discord(anthropic_client: AnthropicClient):
     client.run(credentials.discord_token())
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Run the Avandra Discord bot")
     parser.add_argument(
         "--interactive",
@@ -68,3 +72,6 @@ if __name__ == "__main__":
         asyncio.run(run_interactive(anthropic_client, args.name))
     else:
         run_discord(anthropic_client)
+
+if __name__ == "__main__":
+    main()

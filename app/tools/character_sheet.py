@@ -278,12 +278,12 @@ class GetCharacterSheetInput(BaseModel):
     ]
 
 
-def get_character_sheet(input: GetCharacterSheetInput) -> str:
+def get_character_sheet(tool_input: GetCharacterSheetInput) -> str:
     """Get a character sheet."""
-    if input.character_name not in sheets:
-        raise ValueError(f"Character {input.character_name} not found.")
-    else:
-        return sheets[input.character_name].model_dump_json(indent=2)
+    if tool_input.character_name not in sheets:
+        raise ValueError(f"Character {tool_input.character_name} not found.")
+
+    return sheets[tool_input.character_name].model_dump_json(indent=2)
 
 
 def system_prompt(character_name: str) -> dict | None:
@@ -294,15 +294,15 @@ def system_prompt(character_name: str) -> dict | None:
             "type": "text",
             "text": (f"The party members are: {party_members}"),
         }
-    else:
-        sheet = sheets[character_name].model_dump_json(indent=2)
-        return {
-            "type": "text",
-            "text": (
-                f"The party members are: {party_members}\n\n"
-                f"Here is the player's character sheet:\n{sheet}"
-            ),
-        }
+
+    sheet = sheets[character_name].model_dump_json(indent=2)
+    return {
+        "type": "text",
+        "text": (
+            f"The party members are: {party_members}\n\n"
+            f"Here is the player's character sheet:\n{sheet}"
+        ),
+    }
 
 
 def tool_json_schema() -> dict:
@@ -314,10 +314,12 @@ def tool_json_schema() -> dict:
     }
 
 
-async def run(input: dict | str, send_reply: Callable[[str], Awaitable[None]]) -> str:
+async def run(
+    tool_input: dict | str, _send_reply: Callable[[str], Awaitable[None]]
+) -> str:
     """Run the get_character_sheet tool."""
-    if isinstance(input, str):
-        inputs = GetCharacterSheetInput.model_validate_json(input)
+    if isinstance(tool_input, str):
+        inputs = GetCharacterSheetInput.model_validate_json(tool_input)
     else:
-        inputs = GetCharacterSheetInput.model_validate(input)
+        inputs = GetCharacterSheetInput.model_validate(tool_input)
     return get_character_sheet(inputs)
