@@ -262,6 +262,11 @@ Character sheets are currently stored in-memory in `app/tools/character_sheet.py
 
 ## Testing
 
+### Test File Naming
+- **Test files must use the `_test.py` suffix** (e.g., `anthropic_test.py`, `roll_dice_test.py`)
+- Test files should be placed in the same directory as the source files they test
+- Example: `app/backends/anthropic_test.py` tests `app/backends/anthropic.py`
+
 ### Mock Clients
 - **`MockAnthropicClient`**: Available in `app/backends/anthropic.py` for testing
 - Uses `mock_call_api()` to return predefined responses
